@@ -1,4 +1,4 @@
-# Discord Ticket Bot
+# [REAP] RESPECT Market Ticket Bot
 
 This is an implemenation of a ticket bot system for Discord Servers. 
 
