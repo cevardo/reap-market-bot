@@ -1,0 +1,22 @@
+{
+  "name": "reap-market-bot",
+  "version": "1.0.0",
+  "description": "[REAP] RESPECT Corporation Market Bot for EVE Echoes",
+  "main": "ticketbot-reaction.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cevardo/reap-market-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cevardo/reap-market-bot/issues"
+  },
+  "homepage": "https://github.com/cevardo/reap-market-bot#readme",
+  "dependencies": {
+    "eslint": "^7.8.1"
+  }
+}

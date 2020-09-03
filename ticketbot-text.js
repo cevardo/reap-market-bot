@@ -5,14 +5,13 @@
  * By Anson, aka Stuy
  * Discord Server: https://discord.gg/tFaWNjF
  */
-
-const discord = require('discord.js'); // Require the Discord.JS module.
+import * as discord from 'discord'
 const client = new discord.Client(); // Instantiate the Discord Client.
 
 /**
  * Make a file called config.json and store your token in there!
  */
-const config = require('./config.json'); // Require your bot token
+const config = require('./config'); // Require your bot token
 
 var userTickets = new Map(); // Create a JS Map Object.
 

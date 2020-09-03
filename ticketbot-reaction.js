@@ -6,10 +6,10 @@
  * Discord Server: https://discord.gg/tFaWNjF
  */
 
-const discord = require('discord.js');
+import * as discord from 'discord';
 const client = new discord.Client();
 
-const config = require('./config.json');
+const config = require('./config');
 
 var userTickets = new Map();
 
