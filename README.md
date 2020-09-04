@@ -13,3 +13,13 @@ I coded this and uploaded a tutorial on YouTube, showing how I did this:
 [Part 3](https://youtu.be/75-G4FkEbp4)
 
 [UPDATED DISCORD.JS V12 TICKET BOT](https://www.youtube.com/watch?v=KctjPfO5LxU)
+
+## Invite Bot to Server
+To add a Bot, first generate an [invite URL](https://discordapi.com/permissions.html)
+
+**Current Permissions**
+- Read Messages
+- Send Messages
+- Read Message History
+- Mention @everyone, @here, and all Roles
+- Add Reactions
