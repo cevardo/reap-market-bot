@@ -6,8 +6,10 @@ There are 2 files, one utilizes text commands, the other utilizes role reactions
 
 I coded this and uploaded a tutorial on YouTube, showing how I did this:
 
-Part 1 - https://youtu.be/Q4VNnCQkg4I
+[Part 1](https://youtu.be/Q4VNnCQkg4I)
 
-Part 2 - https://youtu.be/TXQJhuZNthI
+[Part 2](https://youtu.be/TXQJhuZNthI)
 
-Part 3 - https://youtu.be/75-G4FkEbp4
+[Part 3](https://youtu.be/75-G4FkEbp4)
+
+[UPDATED DISCORD.JS V12 TICKET BOT](https://www.youtube.com/watch?v=KctjPfO5LxU)
