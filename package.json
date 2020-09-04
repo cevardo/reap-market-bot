@@ -6,6 +6,7 @@
   "type": "CommonJS",
   "scripts": {
     "start": "npm run lint && npm run build && ts-node src/market-bot.ts",
+    "start:watch": "nodemon",
     "build": "tsc -p tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npx eslint . --fix"
@@ -38,5 +39,18 @@
     "nodemon": "^2.0.4",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      ".git",
+      "node_modules"
+    ],
+    "watch": [
+      "src"
+    ],
+    "exec": "npm start",
+    "ext": "ts"
   }
 }
