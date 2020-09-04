@@ -1,6 +1,6 @@
 # File extensions
 *.env
 
-
 # Directories
 node_modules
+dist
