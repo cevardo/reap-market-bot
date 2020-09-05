@@ -1,12 +1,15 @@
-import { sequelize } from '../database'
 import { DataTypes, Model } from 'sequelize'
+import { sequelize } from './../database/db';
 
 export class TicketConfig extends Model {
-  public messageId!: string
-  public guildId!: string
-  public roles!: string[]
-  public parentId!: string
+  messageId!: string
+  guildId!: string
+  roles!: string[]
+  parentId!: string
 
+  // timestamps!
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 TicketConfig.init({
@@ -23,7 +26,8 @@ TicketConfig.init({
   parentId: {
     type: DataTypes.STRING,
   },
-}, {
+},
+{
   tableName: 'ticketConfigs',
   sequelize,
 })

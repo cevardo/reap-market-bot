@@ -1,8 +1,11 @@
 import { Client, Message } from 'discord.js'
 import { discordClient } from './client'
 import { config } from './config'
+import { sequelize } from './database/db'
+import { Ticket, TicketConfig } from './models'
 
-const userTickets = new Map() // Create a JS Map Object.
+const db = sequelize
+const userTickets = new Map()
 
 async function start() {
 
@@ -10,6 +13,13 @@ async function start() {
 
   client.once('ready', () => {
     console.log(client.user?.username + ' is READY for business.')
+    db.authenticate()
+      .then(async () => {
+        console.log('Connected to database.')
+        await Ticket.sync()
+        await TicketConfig.sync()
+      })
+      .catch(err => console.log(err))
   })
 
   client.on('message', async (message: Message) => {
@@ -39,6 +49,7 @@ async function start() {
 
         // Optionally save config to database
 
+        console.log('Setup complete!')
       }
       catch (err) {
         console.log(err)

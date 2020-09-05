@@ -4,29 +4,45 @@
   "description": "[REAP] RESPECT Corporation Market Bot for EVE Echoes",
   "main": "src/market-bot.ts",
   "type": "CommonJS",
-  "scripts": {
-    "start": "npm run lint && npm run build && ts-node src/market-bot.ts",
-    "start:watch": "nodemon",
-    "build": "tsc -p tsconfig.json",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "npx eslint . --fix"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cevardo/reap-market-bot.git"
-  },
-  "author": "",
+  "author": "Chris Evardo",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/cevardo/reap-market-bot/issues"
   },
   "homepage": "https://github.com/cevardo/reap-market-bot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cevardo/reap-market-bot.git"
+  },
+  "scripts": {
+    "start": "npm run lint && npm run build && nodemon",
+    "start:prod": "npm run build && ts-node src/market-bot.ts",
+    "build": "rimraf dist && tsc -p tsconfig.json",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npx eslint . --fix"
+  },
+  "nodemonConfig": {
+    "verbose": true,
+    "ignore": [
+      "node_modules"
+    ],
+    "watch": [
+      "./src"
+    ],
+    "exec": "ts-node src/market-bot.ts",
+    "execMap": {
+      "ts": "ts-node"
+    },
+    "ext": ".ts, .js"
+  },
   "dependencies": {
     "discord.js": "^12.3.1",
-    "sequelize": "^6.3.5"
+    "sequelize": "^6.3.5",
+    "mysql2": "^2.1.0"
   },
   "devDependencies": {
     "@types/node": "^14.6.3",
+    "@types/validator": "^13.1.0",
     "@types/ws": "^7.2.6",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
@@ -37,21 +53,10 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "module-alias": "^2.2.2",
     "nodemon": "^2.0.4",
+    "rimraf": "^3.0.2",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2"
-  },
-  "nodemonConfig": {
-    "ignore": [
-      "**/*.test.ts",
-      "**/*.spec.ts",
-      ".git",
-      "node_modules"
-    ],
-    "watch": [
-      "src"
-    ],
-    "exec": "npm start",
-    "ext": "ts"
   }
 }

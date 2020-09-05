@@ -1,0 +1,4 @@
+-- mysql -u root -p
+CREATE DATABASE REAP_MARKET;
+GRANT ALL PRIVILEGES ON REAP_MARKET.* TO 'reap'@'localhost';
+USE REAP_MARKET;
