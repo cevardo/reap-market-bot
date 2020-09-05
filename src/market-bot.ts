@@ -2,7 +2,7 @@ import { Client, Message } from 'discord.js'
 import { discordClient } from './client'
 import { config } from './config'
 import { sequelize } from './database/db'
-import { Ticket, TicketConfig } from './models'
+import { Ticket, TicketConfig, initTicket, initTicketConfig } from './models'
 
 const db = sequelize
 const userTickets = new Map()
@@ -16,6 +16,8 @@ async function start() {
     db.authenticate()
       .then(async () => {
         console.log('Connected to database.')
+        initTicket()
+        initTicketConfig()
         await Ticket.sync()
         await TicketConfig.sync()
       })
