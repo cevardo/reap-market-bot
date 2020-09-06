@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 import { Client, Message } from 'discord.js'
 import { discordClient } from './client'
 import { config } from './config'
@@ -30,6 +32,8 @@ async function start() {
 
     const guild = await message.guild!.fetch()
 
+    // TODO: Make this listener into a SWITCH control
+    // Create separate modules for each command
     if (message.content.toLowerCase() === '?setup' && guild.ownerID === message.author.id) {
       try {
         message.channel.send('Please enter the message id for this ticket')
@@ -41,19 +45,33 @@ async function start() {
         const categoryChannel = client.channels.cache.get(categoryId)
 
         message.channel.send('Please enter the roles that have access to tickets')
-        const roles = await getFirstMessageContent(message)
+        const roles = await getFirstMessageContent(message).then(content => { return content.split(/,\s*/) })
 
         if (fetchMsg && categoryChannel) {
-          for (const roleId of roles.split(/,\s*/)) {
+          console.log(roles)
+          for (const roleId of roles) {
             if (!guild.roles.cache.get(roleId)) throw new Error('Role does not exist!')
           }
+
+          const ticketConfig = await TicketConfig.create({
+            messageId: msgId,
+            guildId: message.guild!.id,
+            roles: JSON.stringify(roles),
+            parentId: categoryChannel.id
+          })
+          console.log(ticketConfig)
+          message.channel.send('Saved Config to DB!')
+
+        } else { 
+          throw new Error('Invalid fields!')
         }
 
         // Optionally save config to database
-
+        // 751441844637794354, 751960815359229953, 751961192565571634
         console.log('Setup complete!')
       }
       catch (err) {
+        message.channel.send('Invalid input!')
         console.log(err)
       }
     }
@@ -147,8 +165,18 @@ async function start() {
 
 async function getFirstMessageContent(message: Message): Promise<string> {
   const filter = (m: Message) => m.author.id === message.author.id
-  const finalMessage = (await message.channel.awaitMessages(filter, { max: 1 })).first()!
-  return finalMessage.content
+  // const finalMessage = (await message.channel.awaitMessages(filter, { max: 1 })).first()!
+  const finalMessage = await message.channel.awaitMessages(filter, { max: 1 })
+  .then(successResponse => {
+    return successResponse.first()!.content
+  },
+  (rejectResponse) => { 
+    console.log(rejectResponse)
+    return rejectResponse
+  })
+  .catch(error => console.log(error))
+
+  return finalMessage
 }
 
 start()
