@@ -1,13 +1,13 @@
 require('dotenv').config()
 
-import { Client, Message } from 'discord.js'
+import { Client, Message, GuildMember, TextChannel } from 'discord.js'
 import { discordClient } from './client'
-import { config } from './config'
 import { sequelize } from './database/db'
-import { Ticket, TicketConfig, initTicket, initTicketConfig } from './models'
+import { Ticket, Tab, initTicket, initTab, initRole, MarketRole } from './models'
+import { config } from './config'
+import { emojiCharacters } from './emojiCharacters'
 
 const db = sequelize
-const userTickets = new Map()
 
 async function start() {
 
@@ -19,9 +19,11 @@ async function start() {
       .then(async () => {
         console.log('Connected to database.')
         initTicket()
-        initTicketConfig()
+        initTab()
+        initRole()
         await Ticket.sync()
-        await TicketConfig.sync()
+        await Tab.sync()
+        await MarketRole.sync()
       })
       .catch(err => console.log(err))
   })
@@ -31,152 +33,154 @@ async function start() {
     if (message.author.bot || message.channel.type === 'dm') return
 
     const guild = await message.guild!.fetch()
+    const marketCategory = guild.channels.cache.find(channel => channel.id === config.marketCategoryId)
 
     // TODO: Make this listener into a SWITCH control
     // Create separate modules for each command
-    if (message.content.toLowerCase() === '?setup' && guild.ownerID === message.author.id) {
+
+    if (message.content.toLowerCase() === '?tab' && isValidShopper(message.member!)) {
       try {
-        message.channel.send('Please enter the message id for this ticket')
-        const msgId = await getFirstMessageContent(message)
-        const fetchMsg = await message.channel.messages.fetch(msgId)
+        // TODO:
+        // Create a single tab for each user. Do not open duplicate tabs.
+        // Append new orders to existing tab.
+        // Create a command to list open orders in a user's tab.
 
-        message.channel.send('Please enter the category id for this ticket')
-        const categoryId = await getFirstMessageContent(message)
-        const categoryChannel = client.channels.cache.get(categoryId)
+        console.log('Cheking tab for ' + message.author.username)
+        const tab = await Tab.findOne({ where: { ownerId: message.author.id } })
+          .catch(err => console.log(err))
 
-        message.channel.send('Please enter the roles that have access to tickets')
-        const roles = await getFirstMessageContent(message).then(content => { return content.split(/,\s*/) })
+        if (tab) {
+          message.channel.send('You have an open Tab! Go buy stuff!')
+          // TODO: Print out user's current tab of opened tickets
+          return
 
-        if (fetchMsg && categoryChannel) {
-          console.log(roles)
-          for (const roleId of roles) {
-            if (!guild.roles.cache.get(roleId)) throw new Error('Role does not exist!')
-          }
-
-          const ticketConfig = await TicketConfig.create({
-            messageId: msgId,
-            guildId: message.guild!.id,
-            roles: JSON.stringify(roles),
-            parentId: categoryChannel.id
-          })
-          console.log(ticketConfig)
-          message.channel.send('Saved Config to DB!')
-
-        } else { 
-          throw new Error('Invalid fields!')
         }
+        else {
+          const fetchMsg = await message.channel.messages.fetch(message.id)
 
-        // Optionally save config to database
-        // 751441844637794354, 751960815359229953, 751961192565571634
-        console.log('Setup complete!')
+          console.log(marketCategory)
+          if (!fetchMsg || !marketCategory) {
+            throw 'Invalid fields!'
+          }
+          else {
+            // TODO: Get these from roles table
+            const roles = '751441844637794354, 751960815359229953, 751961192565571634'.split(/,\s*/)
+            console.log(roles)
+            for (const roleId of roles) {
+              if (!guild.roles.cache.get(roleId)) throw new Error('Role does not exist!')
+            }
+
+            await Tab.create({
+              messageId: message.id,
+              guildId: message.guild!.id,
+              roles: JSON.stringify(roles),
+              parentId: marketCategory.id,
+              ownerId: message.author.id,
+              ownerName: message.author.username,
+              open: true,
+            })
+
+            message.channel.send('Opened a new Tab for ' + message.author.username)
+            await fetchMsg.react(emojiCharacters.tab).catch(err => console.log(err))
+          }
+        }
       }
       catch (err) {
-        message.channel.send('Invalid input!')
-        console.log(err)
+        message.channel.send('You lack permissions to do perform this action!')
+        throw new Error(err)
       }
     }
+  })
 
-    /**
-		 * This first conditional statement is used to give reactions to the embed messages our bot sends.
-		 * Please note everything here is hard-coded, you are responsible for modifying it to fit your needs.
-		 */
+  client.on('messageReactionAdd', async (reaction, user) => {
+    if (user.bot) return
 
-    if(message.author.bot) {
-      if(message) {
-        if(message.embeds.length === 1 && message.embeds[0]) {
-          message.react(':ticketreact:625925895013662721')
-            .then(() => console.log('Reacted'))
-            .catch(err => console.log(err))
+    if(reaction.emoji.name === emojiCharacters.tab) {
+      const tab = await Tab.findOne({ where: { messageId: reaction.message.id } })
+
+      if (tab) {
+        const findTicket = await Tab.findOne({ where: { authorId: user.id, resolved: false } })
+
+        if (findTicket) {
+          console.log('An open ticket already exists!')
+
         }
-        if(message.embeds.length === 1 && message.embeds[0].title === 'Ticket Support') {
-          message.react(':checkreact:625938016510410772')
-            .then(reaction => console.log('Reacted with ' + reaction.emoji.name))
-            .catch(err => console.log(err))
+        else {
+          console.log('Creating ticket!')
+
+          const roleIdString: string = tab.getDataValue('roles')
+          console.log(roleIdString)
+          const roleIds = JSON.parse(roleIdString)
+
+          const permissions = roleIds.map((id: string) => { return { allow: 'VIEW_CHANNEL', id } })
+
+          const channel = await reaction.message.guild!.channels.create('ticket', {
+            parent: tab.getDataValue('parentId'),
+            permissionOverwrites: [
+              { deny: 'VIEW_CHANNEL', id: reaction.message.guild!.id },
+              { allow: 'VIEW_CHANNEL', id: user.id },
+              ...permissions,
+            ],
+          })
+
+          const msg = await channel.send('React to this message to close the ticket!')
+          await msg.react('\:lock:')
+
+          const ticket = await Ticket.create({
+            authorId: user.id,
+            channelId: channel.id,
+            guildId: reaction.message.guild!.id,
+            resolved: false,
+            closedMessageId: msg.id,
+          })
+
+          const ticketId = String(ticket.getDataValue('ticketId').padStart(4, 0))
+          await channel.edit({ name: `ticket=${ticketId}` })
+
         }
-      }
-    }
-
-
-    if(message.content.toLowerCase() === '?createticket' && message.channel.id === config.marketChannelId) {
-
-      /**
-			 * Check if the map has the user's id as a key
-			 * We also need to check if there might be another channel the bot made that it did not delete,
-			 * (could've been from an old ticket but the bot crashed so the channel was not closed/deleted.)
-			 */
-      if(userTickets.has(message.author.id)
-      // guild.channels.some(channel => channel.name.toLowerCase() === message.author.username + 's-ticket')
-      ) {
-        message.author.send('You already have a ticket!')
       }
       else {
-        /**
-				 * Create the channel, pass in params.
-				 * Make sure you assign appropriate permissions for each role.
-				 * If you have additional roles: e.g Moderator, Trial Mod, etc. each of them needs permissions for it.
-				 * You can choose to set up additional permissions.
-				 */
-        guild.channels.create(`${message.author.username}s-ticket`, {
-          type: 'text',
-          permissionOverwrites: [
-            {
-              allow: 'VIEW_CHANNEL',
-              id: message.author.id,
-            },
-            {
-              deny: 'VIEW_CHANNEL',
-              id: guild.id,
-            },
-            {
-              allow: 'VIEW_CHANNEL',
-              id: config.marketChannelId,
-            },
-          ],
-        }).then(ch => {
-          userTickets.set(message.author.id, ch.id) // Once our channel is created, we set the map with a key-value pair where we map the user's id to their ticket's channel id, indicating that they have a ticket opened.
-        }).catch(err => console.log(err))
+        console.log('No ticket found with ID: ' + reaction.message.id)
       }
     }
-    else if(message.content.toLowerCase() === '?closeticket') { // Closing the ticket.
-      if(userTickets.has(message.author.id)) { // Check if the user has a ticket by checking if the map has their ID as a key.
-        if(message.channel.id === userTickets.get(message.author.id)) {
-          message.channel.delete('closing ticket') // Delete the ticket.
-            .then(channel => {
-              console.log('Deleted ' + channel.id)
-              userTickets.delete(message.author.id)
-            })
-            .catch(err => console.log(err))
+    else if (reaction.emoji.name === '\:lock:') {
+      const ticket = await Ticket.findOne({ where: { channelId: reaction.message.channel.id } })
+      if (ticket) {
+        const closedMessageId = ticket.getDataValue('closedMessageId')
+        if (reaction.message.id === closedMessageId) {
+          console.log('Closing ticket...')
+          const channel = reaction.message.channel as TextChannel
+          await channel.updateOverwrite(ticket.getDataValue('authorId'), {
+            VIEW_CHANNEL: false,
+          }).catch(err => { throw err})
+          ticket.resolved = true
+          await ticket.save()
+          console.log('Updated ticket!')
         }
       }
-
-      // if(guild.channels.)
-
-      // if(guild.channels.some((channel: TextChannel) => channel.name.toLowerCase() === message.author.username + 's-ticket')) {
-      //   guild.channels.forEach(channel => {
-      //     if(channel.name.toLowerCase() === message.author.username + 's-ticket') {
-      //       channel.delete().then(ch => console.log('Deleted Channel ' + ch.id))
-      //         .catch(err => console.log(err))
-      //     }
-      //   })
-      // }
     }
   })
 }
 
-async function getFirstMessageContent(message: Message): Promise<string> {
-  const filter = (m: Message) => m.author.id === message.author.id
-  // const finalMessage = (await message.channel.awaitMessages(filter, { max: 1 })).first()!
-  const finalMessage = await message.channel.awaitMessages(filter, { max: 1 })
-  .then(successResponse => {
-    return successResponse.first()!.content
-  },
-  (rejectResponse) => { 
-    console.log(rejectResponse)
-    return rejectResponse
-  })
-  .catch(error => console.log(error))
+process.on('unhandledRejection', error => console.error('Uncaught Promise Rejection', error))
 
-  return finalMessage
+// async function getFirstMessageContent(message: Message): Promise<string> {
+//   const filter = (m: Message) => m.author.id === message.author.id
+//   // const finalMessage = (await message.channel.awaitMessages(filter, { max: 1 })).first()!
+//   const finalMessage = await message.channel.awaitMessages(filter, { max: 1 })
+//     .then(successResponse => {
+//       return successResponse.first()!.content
+//     },
+//     (rejectResponse) => {
+//       console.log(rejectResponse)
+//       return rejectResponse
+//     })
+//     .catch(error => console.log(error))
+
+//   return finalMessage
+// }
+
+function isValidShopper(member: GuildMember) {
+  return member.roles.cache.some(role => role.name === 'market-shopper') ? true : false
 }
-
 start()

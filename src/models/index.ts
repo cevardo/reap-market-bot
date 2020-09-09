@@ -1,2 +1,3 @@
 export * from './ticket'
-export * from './ticket-config'
+export * from './tab'
+export * from './marketRole'

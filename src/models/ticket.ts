@@ -1,18 +1,13 @@
 import { DataTypes, Model } from 'sequelize'
 import { sequelize } from './../database/db'
 
-export interface TicketAttributes {
-  messageId: string
-  guildId: string
-  roles: string[]
-  parentId: string
-}
-
 export class Ticket extends Model {
-  public messageId!: string
-  public guildId!: string
-  public roles!: string[]
-  public parentId!: string
+  id!: number
+  channelId!: string
+  guildId!: string
+  resolved!: boolean
+  closedMessageId!: string
+  author!: string
 
   // timestamps!
   public readonly createdAt!: Date;
@@ -21,7 +16,7 @@ export class Ticket extends Model {
 
 export const initTicket = (): Model => {
   return Ticket.init({
-    ticketId: {
+    id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
