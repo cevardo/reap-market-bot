@@ -1,6 +1,6 @@
-# [REAP] RESPECT Market Ticket Bot
+# [REAP] RESPECT MarketBot
 
-This is an on going implemenation of a market bot system for Discord. The project currently uses Node.js with Discord.js on the server side to interact with a Discord server bot. An accompanying web application is included on the roadmap.
+This is an on going implemenation of a market bot system for Discord. The project currently uses Node.js with Discord.js on the server side to interact with a Discord bot. An accompanying web application is included on the roadmap. EVE Echoes public API is much needed!
 
 Feel free to reach out in game or on the [REAP] Respect Discord server if you have any questions and have fun!
 
@@ -13,6 +13,7 @@ Feel free to reach out in game or on the [REAP] Respect Discord server if you ha
 - Database client (optional)
 
 ### Setup
+1. Enable [Discord Developer Mode](https://discordia.me/en/developer-mode#:~:text=Enabling%20Developer%20Mode%20is%20easy,the%20toggle%20to%20enable%20it.)
 1. Clone our git repo to your file system
     ```
     cd /path/to/your/workspace
@@ -26,16 +27,12 @@ Feel free to reach out in game or on the [REAP] Respect Discord server if you ha
 1. Copy the .env.example file and paste in the project root directory
 1. Rename the copied file to ".env"
     ### NEVER CHECK IN OR EXPOSE THE DISCORD BOT TOKEN PUBLICLY !!!
-  - Reach out to Steve009, Kery, or hamSLAMwich to get the Bot token
-  - Your .env file will not be checked into the repo
-  - Market Channel ID is sourced from the Discord server's Chat Category ID. 
-
-    A Category is the collapsible group that chat channels are listed under (ie: "Text Channels").
-
-    Enabling [Discord Developer Mode](https://discordia.me/en/developer-mode#:~:text=Enabling%20Developer%20Mode%20is%20easy,the%20toggle%20to%20enable%20it.)
-
-  - Database variables prefixed with "DB_" are for your local development environment only and can be left unchanged
-1. Start the [REAP] Market Bot to log it into all servers it has been invited to and get crackin!
+      - Reach out to Steve009, Kery, or hamSLAMwich to get the Bot token
+      - Your .env file will not be checked into the repo
+      - Market Channel ID is sourced from the Discord server's Chat Category ID. 
+        A Category is the collapsible group that chat channels are listed under (ie: "Text Channels").
+      - Database variables prefixed with "DB_" are for your local development environment only and can be left unchanged
+1. Start the [REAP] MarketBot to login to all servers it has been invited to and get crackin!
     ```
     npm start
     ```
